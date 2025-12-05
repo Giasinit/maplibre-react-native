@@ -153,7 +153,8 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
     private @Nullable Integer mTintColor = null;
 
     // Frame update support for onCameraChangedOnFrame
-    private boolean mFrameUpdateEnabled = false;
+    // Using volatile for thread-safe visibility of the flag across threads
+    private volatile boolean mFrameUpdateEnabled = false;
     private Choreographer.FrameCallback mFrameCallback = null;
 
     public MLRNMapView(Context context, MLRNMapViewManager manager, MapLibreMapOptions options) {
@@ -1539,8 +1540,9 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
     }
 
     private void startFrameUpdates() {
+        // Clean up any existing callback before creating a new one
         if (mFrameCallback != null) {
-            return;
+            stopFrameUpdates();
         }
         mFrameCallback = new Choreographer.FrameCallback() {
             @Override
@@ -1564,6 +1566,7 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
     }
 
     private void handleFrameUpdate(long frameTimeNanos) {
+        // Defensive null check since this method could be called from other contexts
         if (mMap == null) {
             return;
         }
@@ -1573,12 +1576,15 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
             return;
         }
 
-        WritableMap payload = makeFramePayload(frameTimeNanos);
+        WritableMap payload = makeFramePayload(position, frameTimeNanos);
         mManager.sendCameraChangedOnFrameEvent(this, payload);
     }
 
-    private WritableMap makeFramePayload(long frameTimeNanos) {
-        CameraPosition position = mMap.getCameraPosition();
+    private WritableMap makeFramePayload(CameraPosition position, long frameTimeNanos) {
+        if (position == null || position.target == null) {
+            return new WritableNativeMap();
+        }
+        
         LatLng latLng = new LatLng(position.target.getLatitude(), position.target.getLongitude());
 
         WritableMap properties = new WritableNativeMap();

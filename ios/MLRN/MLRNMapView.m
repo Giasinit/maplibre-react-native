@@ -9,6 +9,7 @@
 
 @implementation MLRNMapView {
   BOOL _pendingInitialLayout;
+  CADisplayLink *_displayLink;
 }
 
 static double const DEG2RAD = M_PI / 180;
@@ -492,6 +493,58 @@ static double const M2PI = M_PI * 2;
 
 - (void)didChangeUserTrackingMode:(MLNUserTrackingMode)mode animated:(BOOL)animated {
   [_reactCamera didChangeUserTrackingMode:mode animated:animated];
+}
+
+#pragma mark - Frame Updates (CADisplayLink)
+
+- (void)setFrameUpdateEnabled:(BOOL)frameUpdateEnabled {
+  _frameUpdateEnabled = frameUpdateEnabled;
+  if (_frameUpdateEnabled) {
+    [self startFrameUpdates];
+  } else {
+    [self stopFrameUpdates];
+  }
+}
+
+- (void)startFrameUpdates {
+  if (_displayLink != nil) {
+    return;
+  }
+  _displayLink = [CADisplayLink displayLinkWithTarget:self selector:@selector(_handleFrameUpdate:)];
+  [_displayLink addToRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+}
+
+- (void)stopFrameUpdates {
+  if (_displayLink == nil) {
+    return;
+  }
+  [_displayLink invalidate];
+  _displayLink = nil;
+}
+
+- (void)_handleFrameUpdate:(CADisplayLink *)displayLink {
+  if (self.onCameraChangedOnFrame == nil) {
+    return;
+  }
+  
+  MLNPointFeature *feature = [[MLNPointFeature alloc] init];
+  feature.coordinate = self.centerCoordinate;
+  feature.attributes = @{
+    @"zoomLevel" : [NSNumber numberWithDouble:self.zoomLevel],
+    @"heading" : [NSNumber numberWithDouble:self.camera.heading],
+    @"pitch" : [NSNumber numberWithDouble:self.camera.pitch],
+    @"timestamp" : [NSNumber numberWithDouble:displayLink.timestamp],
+    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds]
+  };
+  
+  self.onCameraChangedOnFrame(@{
+    @"type" : @"camerachangedonframe",
+    @"payload" : feature.geoJSONDictionary
+  });
+}
+
+- (void)dealloc {
+  [self stopFrameUpdates];
 }
 
 @end

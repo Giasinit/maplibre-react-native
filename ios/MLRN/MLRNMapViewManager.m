@@ -86,6 +86,9 @@ RCT_EXPORT_VIEW_PROPERTY(tintColor, UIColor)
 RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMapChange, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onCameraChangedOnFrame, RCTBubblingEventBlock)
+
+RCT_REMAP_VIEW_PROPERTY(frameUpdateEnabled, frameUpdateEnabled, BOOL)
 
 #pragma mark - React Methods
 

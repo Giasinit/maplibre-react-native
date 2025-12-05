@@ -38,6 +38,7 @@ RCT_EXPORT_MODULE();
   [eventTypes setObject:RCT_MAPBOX_DID_FINISH_RENDERING_MAP_FULLY
                  forKey:@"DidFinishRenderingMapFully"];
   [eventTypes setObject:RCT_MAPBOX_DID_FINISH_LOADING_STYLE forKey:@"DidFinishLoadingStyle"];
+  [eventTypes setObject:RCT_MAPBOX_CAMERA_CHANGED_ON_FRAME forKey:@"CameraChangedOnFrame"];
 
   // location module events
   NSMutableDictionary *locationModuleEvents = [[NSMutableDictionary alloc] init];

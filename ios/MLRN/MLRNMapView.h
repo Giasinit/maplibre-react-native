@@ -60,6 +60,12 @@ typedef void (^StyleLoadedBlock)(MLNStyle *__nonnull style);
 @property (nonatomic, copy, nullable) RCTBubblingEventBlock onPress;
 @property (nonatomic, copy, nullable) RCTBubblingEventBlock onLongPress;
 @property (nonatomic, copy, nullable) RCTBubblingEventBlock onMapChange;
+@property (nonatomic, copy, nullable) RCTBubblingEventBlock onCameraChangedOnFrame;
+
+@property (nonatomic, assign) BOOL frameUpdateEnabled;
+
+- (void)startFrameUpdates;
+- (void)stopFrameUpdates;
 
 - (void)layerAdded:(nonnull MLNStyleLayer *)layer;
 

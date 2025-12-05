@@ -39,4 +39,6 @@ extern NSString *const RCT_MAPBOX_USER_LOCATION_UPDATE;
 
 extern NSString *const RCT_MAPBOX_IMAGES_MISSING_IMAGE;
 
+extern NSString *const RCT_MAPBOX_CAMERA_CHANGED_ON_FRAME;
+
 @end

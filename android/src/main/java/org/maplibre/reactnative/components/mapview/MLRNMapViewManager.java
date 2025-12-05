@@ -6,6 +6,7 @@ import android.view.View;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.common.MapBuilder;
 import com.facebook.react.uimanager.LayoutShadowNode;
 import com.facebook.react.uimanager.ThemedReactContext;
@@ -13,6 +14,8 @@ import com.facebook.react.uimanager.annotations.ReactProp;
 
 import org.maplibre.android.maps.MapLibreMap;
 import org.maplibre.reactnative.components.AbstractEventEmitter;
+import org.maplibre.reactnative.events.IEvent;
+import org.maplibre.reactnative.events.MapChangeEvent;
 import org.maplibre.reactnative.events.constants.EventKeys;
 import org.maplibre.reactnative.utils.ConvertUtils;
 import org.maplibre.reactnative.utils.ExpressionParser;
@@ -184,6 +187,11 @@ public class MLRNMapViewManager extends AbstractEventEmitter<MLRNMapView> {
         mapView.setTintColor(tintColor);
     }
 
+    @ReactProp(name = "frameUpdateEnabled")
+    public void setFrameUpdateEnabled(MLRNMapView mapView, boolean frameUpdateEnabled) {
+        mapView.setFrameUpdateEnabled(frameUpdateEnabled);
+    }
+
     //endregion
 
     //region Custom Events
@@ -197,7 +205,13 @@ public class MLRNMapViewManager extends AbstractEventEmitter<MLRNMapView> {
                 .put(EventKeys.MAP_ON_LOCATION_CHANGE, "onLocationChange")
                 .put(EventKeys.MAP_USER_TRACKING_MODE_CHANGE, "onUserTrackingModeChange")
                 .put(EventKeys.MAP_ANDROID_CALLBACK, "onAndroidCallback")
+                .put(EventKeys.MAP_CAMERA_CHANGED_ON_FRAME, "onCameraChangedOnFrame")
                 .build();
+    }
+
+    public void sendCameraChangedOnFrameEvent(MLRNMapView mapView, WritableMap payload) {
+        IEvent event = new MapChangeEvent(mapView, EventKeys.MAP_CAMERA_CHANGED_ON_FRAME, payload);
+        handleEvent(event);
     }
 
     //endregion

@@ -7,6 +7,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.Handler;
+import android.view.Choreographer;
 import androidx.annotation.NonNull;
 
 import android.util.DisplayMetrics;
@@ -66,6 +67,7 @@ import org.maplibre.reactnative.events.AndroidCallbackEvent;
 import org.maplibre.reactnative.events.IEvent;
 import org.maplibre.reactnative.events.MapChangeEvent;
 import org.maplibre.reactnative.events.MapClickEvent;
+import org.maplibre.reactnative.events.constants.EventKeys;
 import org.maplibre.reactnative.events.constants.EventTypes;
 import org.maplibre.reactnative.modules.MLRNModule;
 import org.maplibre.reactnative.utils.BitmapUtils;
@@ -149,6 +151,10 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
     private LocationComponentManager mLocationComponentManager = null;
 
     private @Nullable Integer mTintColor = null;
+
+    // Frame update support for onCameraChangedOnFrame
+    private boolean mFrameUpdateEnabled = false;
+    private Choreographer.FrameCallback mFrameCallback = null;
 
     public MLRNMapView(Context context, MLRNMapViewManager manager, MapLibreMapOptions options) {
         super(context, options);
@@ -300,6 +306,9 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         if (mDestroyed) {
             return;
         }
+
+        // Stop frame updates
+        stopFrameUpdates();
 
         if (!layerWaiters.isEmpty()) {
             layerWaiters.clear();
@@ -1517,5 +1526,76 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         if (mLocationComponentManager == null)
             return;
         mLocationComponentManager.update(getMapboxMap().getStyle());
+    }
+
+    // Frame update methods for onCameraChangedOnFrame
+    public void setFrameUpdateEnabled(boolean enabled) {
+        mFrameUpdateEnabled = enabled;
+        if (mFrameUpdateEnabled) {
+            startFrameUpdates();
+        } else {
+            stopFrameUpdates();
+        }
+    }
+
+    private void startFrameUpdates() {
+        if (mFrameCallback != null) {
+            return;
+        }
+        mFrameCallback = new Choreographer.FrameCallback() {
+            @Override
+            public void doFrame(long frameTimeNanos) {
+                if (!mFrameUpdateEnabled || mMap == null || mDestroyed) {
+                    return;
+                }
+                handleFrameUpdate(frameTimeNanos);
+                // Schedule next frame
+                Choreographer.getInstance().postFrameCallback(this);
+            }
+        };
+        Choreographer.getInstance().postFrameCallback(mFrameCallback);
+    }
+
+    private void stopFrameUpdates() {
+        if (mFrameCallback != null) {
+            Choreographer.getInstance().removeFrameCallback(mFrameCallback);
+            mFrameCallback = null;
+        }
+    }
+
+    private void handleFrameUpdate(long frameTimeNanos) {
+        if (mMap == null) {
+            return;
+        }
+
+        CameraPosition position = mMap.getCameraPosition();
+        if (position == null || position.target == null) {
+            return;
+        }
+
+        WritableMap payload = makeFramePayload(frameTimeNanos);
+        mManager.sendCameraChangedOnFrameEvent(this, payload);
+    }
+
+    private WritableMap makeFramePayload(long frameTimeNanos) {
+        CameraPosition position = mMap.getCameraPosition();
+        LatLng latLng = new LatLng(position.target.getLatitude(), position.target.getLongitude());
+
+        WritableMap properties = new WritableNativeMap();
+        properties.putDouble("zoomLevel", position.zoom);
+        properties.putDouble("heading", position.bearing);
+        properties.putDouble("pitch", position.tilt);
+        // Convert nanoseconds to seconds for consistency with iOS
+        properties.putDouble("timestamp", frameTimeNanos / 1_000_000_000.0);
+
+        try {
+            VisibleRegion visibleRegion = mMap.getProjection().getVisibleRegion();
+            properties.putArray("visibleBounds", GeoJSONUtils.fromLatLngBounds(visibleRegion.latLngBounds));
+        } catch (Exception ex) {
+            Logger.e(LOG_TAG,
+                    String.format("An error occurred while attempting to make the frame payload: %s", ex.getMessage()));
+        }
+
+        return GeoJSONUtils.toPointFeature(latLng, properties);
     }
 }

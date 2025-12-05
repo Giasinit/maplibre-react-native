@@ -36,11 +36,6 @@
     "examples:react-native": "yarn workspace react-native-app",
     "examples:expo": "yarn workspace expo-app"
   },
-  "workspaces": [
-    "docs",
-    "examples/*"
-  ],
-  "packageManager": "yarn@4.5.3",
   "main": "./lib/commonjs/index.js",
   "source": "./src/index.ts",
   "module": "./lib/module/index.js",

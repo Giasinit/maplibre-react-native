@@ -1,0 +1,1 @@
+{"version":3,"names":["useRef","useOnce","callback","once","current"],"sourceRoot":"../../../src","sources":["hooks/useOnce.ts"],"mappings":";;AAAA,SAASA,MAAM,QAAQ,OAAO;AAE9B,OAAO,MAAMC,OAAuC,GAClDC,QAAoB,IACjB;EACH,MAAMC,IAAI,GAAGH,MAAM,CAAC,KAAK,CAAC;EAE1B,IAAI,CAACG,IAAI,CAACC,OAAO,EAAE;IACjBD,IAAI,CAACC,OAAO,GAAG,IAAI;IACnBF,QAAQ,CAAC,CAAC;EACZ;AACF,CAAC","ignoreList":[]}

@@ -83,7 +83,6 @@ coverage
 .env
 
 # Build by bob
-lib/
 
 # Maestro
 report.xml

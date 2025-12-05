@@ -1,0 +1,1 @@
+{"version":3,"names":["useRef","useNativeRef"],"sourceRoot":"../../../src","sources":["hooks/useNativeRef.ts"],"mappings":";;AAAA,SAAoCA,MAAM,QAAQ,OAAO;AAMzD;AACA;AACA;AACA,OAAO,SAASC,YAAYA,CAAA,EAE1B;EACA,OAAOD,MAAM,CAAyB,IAAI,CAAC;AAC7C","ignoreList":[]}

@@ -1,0 +1,1 @@
+{"version":3,"file":"MapLibreRNEvent.d.ts","sourceRoot":"","sources":["../../../../../src/types/MapLibreRNEvent.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,KAAK,cAAc,EAAE,MAAM,OAAO,CAAC;AAE5C,MAAM,MAAM,eAAe,CACzB,CAAC,SAAS,MAAM,EAChB,CAAC,GAAG,OAAO,CAAC,OAAO,EACnB,CAAC,GAAG,OAAO,IACT,cAAc,CAAC,CAAC,EAAE;IAAE,IAAI,EAAE,CAAC,CAAC;IAAC,OAAO,EAAE,CAAC,CAAA;CAAE,CAAC,CAAC"}

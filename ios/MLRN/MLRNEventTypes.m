@@ -38,4 +38,6 @@ NSString *const RCT_MAPBOX_IMAGES_MISSING_IMAGE = @"imagesmissingimage";
 
 NSString *const RCT_MAPBOX_USER_LOCATION_UPDATE = @"MapboxUserLocationUpdate";
 
+NSString *const RCT_MAPBOX_CAMERA_CHANGED_ON_FRAME = @"camerachangedonframe";
+
 @end

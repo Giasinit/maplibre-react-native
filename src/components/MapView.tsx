@@ -55,7 +55,16 @@ export interface RegionPayload {
   pitch: number;
 }
 
+export interface FramePayload {
+  zoomLevel: number;
+  heading: number;
+  pitch: number;
+  timestamp: number;
+  visibleBounds: VisibleBounds;
+}
+
 type RegionPayloadFeature = GeoJSON.Feature<GeoJSON.Point, RegionPayload>;
+type FramePayloadFeature = GeoJSON.Feature<GeoJSON.Point, FramePayload>;
 
 type VisibleBounds = [northEast: GeoJSON.Position, southWest: GeoJSON.Position];
 
@@ -212,6 +221,19 @@ interface MapViewProps extends BaseProps {
    */
   onDidFinishLoadingStyle?: () => void;
   /**
+   * Enable ultra-high-frequency frame updates (≈60 FPS).
+   * When enabled, onCameraChangedOnFrame will be called every rendering frame.
+   * Use this for smooth animations that need to track camera position in real-time.
+   * Note: This is an iOS-only feature.
+   */
+  frameUpdateEnabled?: boolean;
+  /**
+   * Callback invoked every rendering frame (≈60 FPS) with current camera state.
+   * Only fires when frameUpdateEnabled is true.
+   * Note: This is an iOS-only feature.
+   */
+  onCameraChangedOnFrame?: (feature: FramePayloadFeature) => void;
+  /**
    * Emitted frequency of regionWillChange events
    */
   regionWillChangeDebounceTime?: number;
@@ -230,10 +252,17 @@ type CallableProps = {
     : never;
 }[keyof MapViewProps];
 
-interface NativeProps extends Omit<MapViewProps, "onPress" | "onLongPress"> {
+interface NativeProps
+  extends Omit<
+    MapViewProps,
+    "onPress" | "onLongPress" | "onCameraChangedOnFrame"
+  > {
   mapStyle?: string;
   onPress(event: NativeSyntheticEvent<{ payload: GeoJSON.Feature }>): void;
   onLongPress(event: NativeSyntheticEvent<{ payload: GeoJSON.Feature }>): void;
+  onCameraChangedOnFrame?(
+    event: NativeSyntheticEvent<{ payload: FramePayloadFeature }>,
+  ): void;
 }
 
 export interface MapViewRef {
@@ -610,6 +639,14 @@ export const MapView = memo(
         }
       };
 
+      const _onCameraChangedOnFrame = (
+        e: NativeSyntheticEvent<{ payload: FramePayloadFeature }>,
+      ): void => {
+        if (isFunction(props.onCameraChangedOnFrame)) {
+          props.onCameraChangedOnFrame(e.nativeEvent.payload);
+        }
+      };
+
       const _onRegionWillChange = (payload: RegionPayloadFeature): void => {
         if (isFunction(props.onRegionWillChange)) {
           props.onRegionWillChange(payload);
@@ -796,6 +833,7 @@ export const MapView = memo(
         onPress: _onPress,
         onLongPress: _onLongPress,
         onMapChange: _onChange,
+        onCameraChangedOnFrame: _onCameraChangedOnFrame,
         onAndroidCallback: isAndroid() ? _onAndroidCallback : undefined,
       };
 

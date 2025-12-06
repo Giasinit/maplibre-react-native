@@ -487,6 +487,10 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
                 if (markerViewManager != null) {
                     markerViewManager.updateMarkers();
                 }
+                // Emit frame update during actual camera movement for real-time coordinates
+                if (mFrameUpdateEnabled) {
+                    emitCameraChangedOnFrame();
+                }
             }
         });
 
@@ -1537,6 +1541,25 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         } else {
             stopFrameUpdates();
         }
+    }
+
+    /**
+     * Emit camera changed on frame event with current camera position.
+     * This is called from OnCameraMoveListener for real-time updates during gestures/animations.
+     */
+    private void emitCameraChangedOnFrame() {
+        if (mMap == null || mDestroyed) {
+            return;
+        }
+        
+        CameraPosition position = mMap.getCameraPosition();
+        if (position == null || position.target == null) {
+            return;
+        }
+        
+        // Use System.nanoTime() for timestamp since this is not from Choreographer
+        WritableMap payload = makeFramePayload(position, System.nanoTime());
+        mManager.sendCameraChangedOnFrameEvent(this, payload);
     }
 
     private void startFrameUpdates() {

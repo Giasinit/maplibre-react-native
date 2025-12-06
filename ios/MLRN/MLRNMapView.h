@@ -66,6 +66,7 @@ typedef void (^StyleLoadedBlock)(MLNStyle *__nonnull style);
 
 - (void)startFrameUpdates;
 - (void)stopFrameUpdates;
+- (void)emitCameraChangedOnFrame;
 
 - (void)layerAdded:(nonnull MLNStyleLayer *)layer;
 

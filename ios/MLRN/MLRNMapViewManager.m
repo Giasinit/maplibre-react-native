@@ -477,6 +477,12 @@ RCT_EXPORT_METHOD(setSourceVisibility : (nonnull NSNumber *)reactTag visible : (
 - (void)mapViewRegionIsChanging:(MLNMapView *)mapView {
   NSDictionary *payload = [self _makeRegionPayload:mapView animated:false];
   [self reactMapDidChange:mapView eventType:RCT_MAPBOX_REGION_IS_CHANGING andPayload:payload];
+  
+  // Emit frame update during camera movement for real-time coordinates
+  MLRNMapView *reactMapView = (MLRNMapView *)mapView;
+  if (reactMapView.frameUpdateEnabled && reactMapView.onCameraChangedOnFrame != nil) {
+    [reactMapView emitCameraChangedOnFrame];
+  }
 }
 
 - (void)mapView:(MLNMapView *)mapView

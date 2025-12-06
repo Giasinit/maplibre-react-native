@@ -7,6 +7,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.view.Choreographer;
 import androidx.annotation.NonNull;
 
@@ -486,6 +487,10 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
             public void onCameraMove() {
                 if (markerViewManager != null) {
                     markerViewManager.updateMarkers();
+                }
+                // Emit frame update during actual camera movement for real-time coordinates
+                if (mFrameUpdateEnabled) {
+                    emitCameraChangedOnFrame();
                 }
             }
         });
@@ -1539,6 +1544,25 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         }
     }
 
+    /**
+     * Emit camera changed on frame event with current camera position.
+     * This is called from OnCameraMoveListener for real-time updates during gestures/animations.
+     */
+    private void emitCameraChangedOnFrame() {
+        if (mMap == null || mDestroyed) {
+            return;
+        }
+        
+        CameraPosition position = mMap.getCameraPosition();
+        if (position == null || position.target == null) {
+            return;
+        }
+        
+        // Use SystemClock.elapsedRealtimeNanos() for consistent timestamps with Choreographer
+        WritableMap payload = makeFramePayload(position, SystemClock.elapsedRealtimeNanos());
+        mManager.sendCameraChangedOnFrameEvent(this, payload);
+    }
+
     private void startFrameUpdates() {
         // Clean up any existing callback before creating a new one
         if (mFrameCallback != null) {
@@ -1593,6 +1617,9 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         properties.putDouble("pitch", position.tilt);
         // Convert nanoseconds to seconds for consistency with iOS
         properties.putDouble("timestamp", frameTimeNanos / 1_000_000_000.0);
+        
+        // Add center coordinate to properties for easy access
+        properties.putArray("center", GeoJSONUtils.fromLatLng(latLng));
 
         try {
             VisibleRegion visibleRegion = mMap.getProjection().getVisibleRegion();

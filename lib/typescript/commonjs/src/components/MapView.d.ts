@@ -19,6 +19,11 @@ export interface FramePayload {
     pitch: number;
     timestamp: number;
     visibleBounds: VisibleBounds;
+    /**
+     * Center coordinate of the map [longitude, latitude].
+     * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+     */
+    center: GeoJSON.Position;
 }
 type RegionPayloadFeature = GeoJSON.Feature<GeoJSON.Point, RegionPayload>;
 type FramePayloadFeature = GeoJSON.Feature<GeoJSON.Point, FramePayload>;
@@ -195,13 +200,11 @@ interface MapViewProps extends BaseProps {
      * Enable ultra-high-frequency frame updates (≈60 FPS).
      * When enabled, onCameraChangedOnFrame will be called every rendering frame.
      * Use this for smooth animations that need to track camera position in real-time.
-     * Note: This is an iOS-only feature.
      */
     frameUpdateEnabled?: boolean;
     /**
      * Callback invoked every rendering frame (≈60 FPS) with current camera state.
      * Only fires when frameUpdateEnabled is true.
-     * Note: This is an iOS-only feature.
      */
     onCameraChangedOnFrame?: (feature: FramePayloadFeature) => void;
     /**

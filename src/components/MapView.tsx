@@ -61,6 +61,11 @@ export interface FramePayload {
   pitch: number;
   timestamp: number;
   visibleBounds: VisibleBounds;
+  /**
+   * Center coordinate of the map [longitude, latitude].
+   * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+   */
+  center: GeoJSON.Position;
 }
 
 type RegionPayloadFeature = GeoJSON.Feature<GeoJSON.Point, RegionPayload>;

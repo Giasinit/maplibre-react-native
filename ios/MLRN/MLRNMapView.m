@@ -527,14 +527,16 @@ static double const M2PI = M_PI * 2;
     return;
   }
   
+  CLLocationCoordinate2D center = self.centerCoordinate;
   MLNPointFeature *feature = [[MLNPointFeature alloc] init];
-  feature.coordinate = self.centerCoordinate;
+  feature.coordinate = center;
   feature.attributes = @{
     @"zoomLevel" : [NSNumber numberWithDouble:self.zoomLevel],
     @"heading" : [NSNumber numberWithDouble:self.camera.heading],
     @"pitch" : [NSNumber numberWithDouble:self.camera.pitch],
     @"timestamp" : [NSNumber numberWithDouble:displayLink.timestamp],
-    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds]
+    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds],
+    @"center" : @[ @(center.longitude), @(center.latitude) ]
   };
   
   self.onCameraChangedOnFrame(@{

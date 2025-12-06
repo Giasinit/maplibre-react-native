@@ -1593,6 +1593,9 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         properties.putDouble("pitch", position.tilt);
         // Convert nanoseconds to seconds for consistency with iOS
         properties.putDouble("timestamp", frameTimeNanos / 1_000_000_000.0);
+        
+        // Add center coordinate to properties for easy access
+        properties.putArray("center", GeoJSONUtils.fromLatLng(latLng));
 
         try {
             VisibleRegion visibleRegion = mMap.getProjection().getVisibleRegion();

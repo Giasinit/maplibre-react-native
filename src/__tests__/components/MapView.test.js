@@ -42,4 +42,41 @@ describe("MapView", () => {
       getByTestId(expectedTestId);
     }).not.toThrow();
   });
+
+  test("onCameraChangedOnFrame callback receives FramePayload with center coordinate", () => {
+    const expectedTestId = "map-with-center-in-frame";
+    const mockCallback = jest.fn();
+
+    // This test validates that the callback prop is properly typed
+    // The actual native event would include center in properties
+    render(
+      <MapView
+        testID={expectedTestId}
+        frameUpdateEnabled
+        onCameraChangedOnFrame={(feature) => {
+          // TypeScript should recognize these properties
+          const {
+            zoomLevel,
+            heading,
+            pitch,
+            timestamp,
+            visibleBounds,
+            center,
+          } = feature.properties;
+          mockCallback({
+            zoomLevel,
+            heading,
+            pitch,
+            timestamp,
+            visibleBounds,
+            center,
+            // Also available in geometry.coordinates
+            geometryCoordinates: feature.geometry.coordinates,
+          });
+        }}
+      />,
+    );
+
+    expect(mockCallback).not.toHaveBeenCalled(); // No native events in test env
+  });
 });

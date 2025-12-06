@@ -12,6 +12,11 @@ export interface RegionPayload {
     isUserInteraction: boolean;
     visibleBounds: VisibleBounds;
     pitch: number;
+    /**
+     * Center coordinate of the map [longitude, latitude].
+     * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+     */
+    center: GeoJSON.Position;
 }
 export interface FramePayload {
     zoomLevel: number;
@@ -25,8 +30,40 @@ export interface FramePayload {
      */
     center: GeoJSON.Position;
 }
+export interface ResizePayload {
+    zoomLevel: number;
+    heading: number;
+    pitch: number;
+    visibleBounds: VisibleBounds;
+    /**
+     * Center coordinate of the map [longitude, latitude].
+     * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+     */
+    center: GeoJSON.Position;
+    /**
+     * Width of the map view in logical pixels.
+     */
+    width: number;
+    /**
+     * Height of the map view in logical pixels.
+     */
+    height: number;
+}
+export interface MovePayload {
+    zoomLevel: number;
+    heading: number;
+    pitch: number;
+    visibleBounds: VisibleBounds;
+    /**
+     * Center coordinate of the map [longitude, latitude].
+     * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+     */
+    center: GeoJSON.Position;
+}
 type RegionPayloadFeature = GeoJSON.Feature<GeoJSON.Point, RegionPayload>;
 type FramePayloadFeature = GeoJSON.Feature<GeoJSON.Point, FramePayload>;
+type ResizePayloadFeature = GeoJSON.Feature<GeoJSON.Point, ResizePayload>;
+type MovePayloadFeature = GeoJSON.Feature<GeoJSON.Point, MovePayload>;
 type VisibleBounds = [northEast: GeoJSON.Position, southWest: GeoJSON.Position];
 interface MapViewProps extends BaseProps {
     /**
@@ -208,6 +245,17 @@ interface MapViewProps extends BaseProps {
      */
     onCameraChangedOnFrame?: (feature: FramePayloadFeature) => void;
     /**
+     * Callback invoked when the map view is resized.
+     * Contains current camera state and new dimensions.
+     */
+    onMapResize?: (feature: ResizePayloadFeature) => void;
+    /**
+     * Callback invoked in real-time during map movement (pan, zoom, rotate, pitch).
+     * Fires very fast during any camera movement - similar to map.on("move") in MapLibre GL JS.
+     * Contains current center coordinates, zoom, pitch, and heading.
+     */
+    onMapMove?: (feature: MovePayloadFeature) => void;
+    /**
      * Emitted frequency of regionWillChange events
      */
     regionWillChangeDebounceTime?: number;
@@ -217,7 +265,7 @@ interface MapViewProps extends BaseProps {
     regionDidChangeDebounceTime?: number;
     children?: ReactNode;
 }
-interface NativeProps extends Omit<MapViewProps, "onPress" | "onLongPress" | "onCameraChangedOnFrame"> {
+interface NativeProps extends Omit<MapViewProps, "onPress" | "onLongPress" | "onCameraChangedOnFrame" | "onMapResize" | "onMapMove"> {
     mapStyle?: string;
     onPress(event: NativeSyntheticEvent<{
         payload: GeoJSON.Feature;
@@ -227,6 +275,12 @@ interface NativeProps extends Omit<MapViewProps, "onPress" | "onLongPress" | "on
     }>): void;
     onCameraChangedOnFrame?(event: NativeSyntheticEvent<{
         payload: FramePayloadFeature;
+    }>): void;
+    onMapResize?(event: NativeSyntheticEvent<{
+        payload: ResizePayloadFeature;
+    }>): void;
+    onMapMove?(event: NativeSyntheticEvent<{
+        payload: MovePayloadFeature;
     }>): void;
 }
 export interface MapViewRef {

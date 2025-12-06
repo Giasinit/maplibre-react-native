@@ -206,11 +206,23 @@ public class MLRNMapViewManager extends AbstractEventEmitter<MLRNMapView> {
                 .put(EventKeys.MAP_USER_TRACKING_MODE_CHANGE, "onUserTrackingModeChange")
                 .put(EventKeys.MAP_ANDROID_CALLBACK, "onAndroidCallback")
                 .put(EventKeys.MAP_CAMERA_CHANGED_ON_FRAME, "onCameraChangedOnFrame")
+                .put(EventKeys.MAP_RESIZE, "onMapResize")
+                .put(EventKeys.MAP_MOVE, "onMapMove")
                 .build();
     }
 
     public void sendCameraChangedOnFrameEvent(MLRNMapView mapView, WritableMap payload) {
         IEvent event = new MapChangeEvent(mapView, EventKeys.MAP_CAMERA_CHANGED_ON_FRAME, payload);
+        handleEvent(event);
+    }
+
+    public void sendMapResizeEvent(MLRNMapView mapView, WritableMap payload) {
+        IEvent event = new MapChangeEvent(mapView, EventKeys.MAP_RESIZE, payload);
+        handleEvent(event);
+    }
+
+    public void sendMapMoveEvent(MLRNMapView mapView, WritableMap payload) {
+        IEvent event = new MapChangeEvent(mapView, EventKeys.MAP_MOVE, payload);
         handleEvent(event);
     }
 

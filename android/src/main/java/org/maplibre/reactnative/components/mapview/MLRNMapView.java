@@ -158,6 +158,10 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
     private volatile boolean mFrameUpdateEnabled = false;
     private Choreographer.FrameCallback mFrameCallback = null;
 
+    // Resize tracking
+    private int mPreviousWidth = 0;
+    private int mPreviousHeight = 0;
+
     public MLRNMapView(Context context, MLRNMapViewManager manager, MapLibreMapOptions options) {
         super(context, options);
 
@@ -613,6 +617,16 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
             if (markerViewManager != null) {
                 markerViewManager.restoreViews();
             }
+            
+            // Detect resize events
+            int currentWidth = right - left;
+            int currentHeight = bottom - top;
+            if (mPreviousWidth != 0 && mPreviousHeight != 0 &&
+                (mPreviousWidth != currentWidth || mPreviousHeight != currentHeight)) {
+                emitMapResizeEvent(currentWidth, currentHeight);
+            }
+            mPreviousWidth = currentWidth;
+            mPreviousHeight = currentHeight;
         }
     }
 
@@ -1305,6 +1319,9 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         properties.putBoolean("animated",
                 (null == isAnimated) ? mCameraChangeTracker.isAnimated() : isAnimated.booleanValue());
         properties.putBoolean("isUserInteraction", mCameraChangeTracker.isUserInteraction());
+        
+        // Add center coordinate to properties for easy access
+        properties.putArray("center", GeoJSONUtils.fromLatLng(latLng));
 
         try {
             VisibleRegion visibleRegion = mMap.getProjection().getVisibleRegion();
@@ -1627,6 +1644,54 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         } catch (Exception ex) {
             Logger.e(LOG_TAG,
                     String.format("An error occurred while attempting to make the frame payload: %s", ex.getMessage()));
+        }
+
+        return GeoJSONUtils.toPointFeature(latLng, properties);
+    }
+
+    /**
+     * Emit map resize event with current camera position and size.
+     */
+    private void emitMapResizeEvent(int width, int height) {
+        if (mMap == null || mDestroyed) {
+            return;
+        }
+        
+        CameraPosition position = mMap.getCameraPosition();
+        if (position == null || position.target == null) {
+            return;
+        }
+        
+        WritableMap payload = makeResizePayload(position, width, height);
+        mManager.sendMapResizeEvent(this, payload);
+    }
+
+    private WritableMap makeResizePayload(CameraPosition position, int width, int height) {
+        if (position == null || position.target == null) {
+            return new WritableNativeMap();
+        }
+        
+        LatLng latLng = new LatLng(position.target.getLatitude(), position.target.getLongitude());
+
+        WritableMap properties = new WritableNativeMap();
+        properties.putDouble("zoomLevel", position.zoom);
+        properties.putDouble("heading", position.bearing);
+        properties.putDouble("pitch", position.tilt);
+        
+        // Add center coordinate to properties for easy access
+        properties.putArray("center", GeoJSONUtils.fromLatLng(latLng));
+        
+        // Add width and height
+        float density = getDisplayDensity();
+        properties.putDouble("width", width / density);
+        properties.putDouble("height", height / density);
+
+        try {
+            VisibleRegion visibleRegion = mMap.getProjection().getVisibleRegion();
+            properties.putArray("visibleBounds", GeoJSONUtils.fromLatLngBounds(visibleRegion.latLngBounds));
+        } catch (Exception ex) {
+            Logger.e(LOG_TAG,
+                    String.format("An error occurred while attempting to make the resize payload: %s", ex.getMessage()));
         }
 
         return GeoJSONUtils.toPointFeature(latLng, properties);

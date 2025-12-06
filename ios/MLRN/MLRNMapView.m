@@ -10,6 +10,7 @@
 @implementation MLRNMapView {
   BOOL _pendingInitialLayout;
   CADisplayLink *_displayLink;
+  CGSize _previousBoundsSize;
 }
 
 static double const DEG2RAD = M_PI / 180;
@@ -21,6 +22,7 @@ static double const M2PI = M_PI * 2;
 - (instancetype)initWithFrame:(CGRect)frame {
   if (self = [super initWithFrame:frame]) {
     _pendingInitialLayout = YES;
+    _previousBoundsSize = CGSizeZero;
     _cameraUpdateQueue = [[CameraUpdateQueue alloc] init];
     _sources = [[NSMutableArray alloc] init];
     _images = [[NSMutableArray alloc] init];
@@ -41,6 +43,14 @@ static double const M2PI = M_PI * 2;
 
     [_reactCamera initialLayout];
   }
+  
+  // Detect resize events
+  CGSize currentSize = self.bounds.size;
+  if (!CGSizeEqualToSize(_previousBoundsSize, CGSizeZero) &&
+      !CGSizeEqualToSize(_previousBoundsSize, currentSize)) {
+    [self _emitMapResize];
+  }
+  _previousBoundsSize = currentSize;
 }
 
 - (void)invalidate {
@@ -556,6 +566,33 @@ static double const M2PI = M_PI * 2;
   self.onCameraChangedOnFrame(@{
     @"type" : @"camerachangedonframe",
     @"payload" : [self _makeFramePayload:CACurrentMediaTime()]
+  });
+}
+
+- (NSDictionary *)_makeResizePayload {
+  CLLocationCoordinate2D center = self.centerCoordinate;
+  MLNPointFeature *feature = [[MLNPointFeature alloc] init];
+  feature.coordinate = center;
+  feature.attributes = @{
+    @"zoomLevel" : [NSNumber numberWithDouble:self.zoomLevel],
+    @"heading" : [NSNumber numberWithDouble:self.camera.heading],
+    @"pitch" : [NSNumber numberWithDouble:self.camera.pitch],
+    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds],
+    @"center" : @[ @(center.longitude), @(center.latitude) ],
+    @"width" : [NSNumber numberWithDouble:self.bounds.size.width],
+    @"height" : [NSNumber numberWithDouble:self.bounds.size.height]
+  };
+  return feature.geoJSONDictionary;
+}
+
+- (void)_emitMapResize {
+  if (self.onMapResize == nil) {
+    return;
+  }
+  
+  self.onMapResize(@{
+    @"type" : @"mapresize",
+    @"payload" : [self _makeResizePayload]
   });
 }
 

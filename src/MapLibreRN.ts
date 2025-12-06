@@ -13,6 +13,7 @@ export {
   type MapViewRef,
   type RegionPayload,
   type FramePayload,
+  type ResizePayload,
 } from "./components/MapView";
 export { Light } from "./components/Light";
 export { PointAnnotation } from "./components/PointAnnotation";

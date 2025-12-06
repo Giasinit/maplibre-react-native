@@ -87,6 +87,7 @@ RCT_EXPORT_VIEW_PROPERTY(onPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMapChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraChangedOnFrame, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onMapResize, RCTBubblingEventBlock)
 
 RCT_REMAP_VIEW_PROPERTY(frameUpdateEnabled, frameUpdateEnabled, BOOL)
 
@@ -589,15 +590,17 @@ RCT_EXPORT_METHOD(setSourceVisibility : (nonnull NSNumber *)reactTag visible : (
 
 - (NSDictionary *)_makeRegionPayload:(MLNMapView *)mapView animated:(BOOL)animated {
   MLRNMapView *rctMapView = (MLRNMapView *)mapView;
+  CLLocationCoordinate2D center = mapView.centerCoordinate;
   MLNPointFeature *feature = [[MLNPointFeature alloc] init];
-  feature.coordinate = mapView.centerCoordinate;
+  feature.coordinate = center;
   feature.attributes = @{
     @"zoomLevel" : [NSNumber numberWithDouble:mapView.zoomLevel],
     @"heading" : [NSNumber numberWithDouble:mapView.camera.heading],
     @"pitch" : [NSNumber numberWithDouble:mapView.camera.pitch],
     @"animated" : [NSNumber numberWithBool:animated],
     @"isUserInteraction" : @(rctMapView.isUserInteraction),
-    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:mapView.visibleCoordinateBounds]
+    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:mapView.visibleCoordinateBounds],
+    @"center" : @[ @(center.longitude), @(center.latitude) ]
   };
   return feature.geoJSONDictionary;
 }

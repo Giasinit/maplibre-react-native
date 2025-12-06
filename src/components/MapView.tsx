@@ -53,6 +53,11 @@ export interface RegionPayload {
   isUserInteraction: boolean;
   visibleBounds: VisibleBounds;
   pitch: number;
+  /**
+   * Center coordinate of the map [longitude, latitude].
+   * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+   */
+  center: GeoJSON.Position;
 }
 
 export interface FramePayload {
@@ -68,8 +73,29 @@ export interface FramePayload {
   center: GeoJSON.Position;
 }
 
+export interface ResizePayload {
+  zoomLevel: number;
+  heading: number;
+  pitch: number;
+  visibleBounds: VisibleBounds;
+  /**
+   * Center coordinate of the map [longitude, latitude].
+   * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+   */
+  center: GeoJSON.Position;
+  /**
+   * Width of the map view in logical pixels.
+   */
+  width: number;
+  /**
+   * Height of the map view in logical pixels.
+   */
+  height: number;
+}
+
 type RegionPayloadFeature = GeoJSON.Feature<GeoJSON.Point, RegionPayload>;
 type FramePayloadFeature = GeoJSON.Feature<GeoJSON.Point, FramePayload>;
+type ResizePayloadFeature = GeoJSON.Feature<GeoJSON.Point, ResizePayload>;
 
 type VisibleBounds = [northEast: GeoJSON.Position, southWest: GeoJSON.Position];
 
@@ -237,6 +263,11 @@ interface MapViewProps extends BaseProps {
    */
   onCameraChangedOnFrame?: (feature: FramePayloadFeature) => void;
   /**
+   * Callback invoked when the map view is resized.
+   * Contains current camera state and new dimensions.
+   */
+  onMapResize?: (feature: ResizePayloadFeature) => void;
+  /**
    * Emitted frequency of regionWillChange events
    */
   regionWillChangeDebounceTime?: number;
@@ -258,13 +289,16 @@ type CallableProps = {
 interface NativeProps
   extends Omit<
     MapViewProps,
-    "onPress" | "onLongPress" | "onCameraChangedOnFrame"
+    "onPress" | "onLongPress" | "onCameraChangedOnFrame" | "onMapResize"
   > {
   mapStyle?: string;
   onPress(event: NativeSyntheticEvent<{ payload: GeoJSON.Feature }>): void;
   onLongPress(event: NativeSyntheticEvent<{ payload: GeoJSON.Feature }>): void;
   onCameraChangedOnFrame?(
     event: NativeSyntheticEvent<{ payload: FramePayloadFeature }>,
+  ): void;
+  onMapResize?(
+    event: NativeSyntheticEvent<{ payload: ResizePayloadFeature }>,
   ): void;
 }
 
@@ -650,6 +684,14 @@ export const MapView = memo(
         }
       };
 
+      const _onMapResize = (
+        e: NativeSyntheticEvent<{ payload: ResizePayloadFeature }>,
+      ): void => {
+        if (isFunction(props.onMapResize)) {
+          props.onMapResize(e.nativeEvent.payload);
+        }
+      };
+
       const _onRegionWillChange = (payload: RegionPayloadFeature): void => {
         if (isFunction(props.onRegionWillChange)) {
           props.onRegionWillChange(payload);
@@ -837,6 +879,7 @@ export const MapView = memo(
         onLongPress: _onLongPress,
         onMapChange: _onChange,
         onCameraChangedOnFrame: _onCameraChangedOnFrame,
+        onMapResize: _onMapResize,
         onAndroidCallback: isAndroid() ? _onAndroidCallback : undefined,
       };
 

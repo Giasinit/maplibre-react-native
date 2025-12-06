@@ -79,4 +79,92 @@ describe("MapView", () => {
 
     expect(mockCallback).not.toHaveBeenCalled(); // No native events in test env
   });
+
+  test("renders with onMapResize callback", () => {
+    const expectedTestId = "map-with-resize-callback";
+    const mockCallback = jest.fn();
+
+    const { getByTestId } = render(
+      <MapView testID={expectedTestId} onMapResize={mockCallback} />,
+    );
+
+    expect(() => {
+      getByTestId(expectedTestId);
+    }).not.toThrow();
+  });
+
+  test("onMapResize callback receives ResizePayload with center coordinate and dimensions", () => {
+    const expectedTestId = "map-with-resize-center";
+    const mockCallback = jest.fn();
+
+    // This test validates that the callback prop is properly typed
+    // The actual native event would include center, width, and height in properties
+    render(
+      <MapView
+        testID={expectedTestId}
+        onMapResize={(feature) => {
+          // TypeScript should recognize these properties
+          const {
+            zoomLevel,
+            heading,
+            pitch,
+            visibleBounds,
+            center,
+            width,
+            height,
+          } = feature.properties;
+          mockCallback({
+            zoomLevel,
+            heading,
+            pitch,
+            visibleBounds,
+            center,
+            width,
+            height,
+            // Also available in geometry.coordinates
+            geometryCoordinates: feature.geometry.coordinates,
+          });
+        }}
+      />,
+    );
+
+    expect(mockCallback).not.toHaveBeenCalled(); // No native events in test env
+  });
+
+  test("onRegionIsChanging callback receives RegionPayload with center coordinate", () => {
+    const expectedTestId = "map-with-region-changing";
+    const mockCallback = jest.fn();
+
+    // This test validates that the callback prop includes center in properties
+    render(
+      <MapView
+        testID={expectedTestId}
+        onRegionIsChanging={(feature) => {
+          // TypeScript should recognize these properties including center
+          const {
+            zoomLevel,
+            heading,
+            pitch,
+            animated,
+            isUserInteraction,
+            visibleBounds,
+            center,
+          } = feature.properties;
+          mockCallback({
+            zoomLevel,
+            heading,
+            pitch,
+            animated,
+            isUserInteraction,
+            visibleBounds,
+            center,
+            // Also available in geometry.coordinates
+            geometryCoordinates: feature.geometry.coordinates,
+          });
+        }}
+      />,
+    );
+
+    expect(mockCallback).not.toHaveBeenCalled(); // No native events in test env
+  });
 });

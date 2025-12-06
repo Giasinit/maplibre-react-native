@@ -12,6 +12,7 @@ public class EventKeys {
     public static final String MAP_USER_TRACKING_MODE_CHANGE = ns("map.usertrackingmodechange");
     public static final String MAP_CAMERA_CHANGED_ON_FRAME = ns("map.camerachangedonframe");
     public static final String MAP_RESIZE = ns("map.resize");
+    public static final String MAP_MOVE = ns("map.move");
 
     // point annotation events
     public static final String POINT_ANNOTATION_SELECTED = ns("pointannotation.selected");

@@ -14,6 +14,7 @@ export {
   type RegionPayload,
   type FramePayload,
   type ResizePayload,
+  type MovePayload,
 } from "./components/MapView";
 export { Light } from "./components/Light";
 export { PointAnnotation } from "./components/PointAnnotation";

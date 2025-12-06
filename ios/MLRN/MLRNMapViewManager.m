@@ -88,6 +88,7 @@ RCT_EXPORT_VIEW_PROPERTY(onLongPress, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMapChange, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onCameraChangedOnFrame, RCTBubblingEventBlock)
 RCT_EXPORT_VIEW_PROPERTY(onMapResize, RCTBubblingEventBlock)
+RCT_EXPORT_VIEW_PROPERTY(onMapMove, RCTBubblingEventBlock)
 
 RCT_REMAP_VIEW_PROPERTY(frameUpdateEnabled, frameUpdateEnabled, BOOL)
 
@@ -479,10 +480,16 @@ RCT_EXPORT_METHOD(setSourceVisibility : (nonnull NSNumber *)reactTag visible : (
   NSDictionary *payload = [self _makeRegionPayload:mapView animated:false];
   [self reactMapDidChange:mapView eventType:RCT_MAPBOX_REGION_IS_CHANGING andPayload:payload];
   
-  // Emit frame update during camera movement for real-time coordinates
   MLRNMapView *reactMapView = (MLRNMapView *)mapView;
+  
+  // Emit frame update during camera movement for real-time coordinates
   if (reactMapView.frameUpdateEnabled && reactMapView.onCameraChangedOnFrame != nil) {
     [reactMapView emitCameraChangedOnFrame];
+  }
+  
+  // Emit real-time move event (similar to map.on("move") in MapLibre GL JS)
+  if (reactMapView.onMapMove != nil) {
+    [reactMapView emitMapMove];
   }
 }
 

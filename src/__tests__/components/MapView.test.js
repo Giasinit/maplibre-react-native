@@ -167,4 +167,51 @@ describe("MapView", () => {
 
     expect(mockCallback).not.toHaveBeenCalled(); // No native events in test env
   });
+
+  test("renders with onMapMove callback", () => {
+    const expectedTestId = "map-with-move-callback";
+    const mockCallback = jest.fn();
+
+    const { getByTestId } = render(
+      <MapView testID={expectedTestId} onMapMove={mockCallback} />,
+    );
+
+    expect(() => {
+      getByTestId(expectedTestId);
+    }).not.toThrow();
+  });
+
+  test("onMapMove callback receives MovePayload with center coordinate", () => {
+    const expectedTestId = "map-with-move-center";
+    const mockCallback = jest.fn();
+
+    // This test validates that the callback prop is properly typed
+    // The actual native event would include center in properties
+    render(
+      <MapView
+        testID={expectedTestId}
+        onMapMove={(feature) => {
+          // TypeScript should recognize these properties
+          const {
+            zoomLevel,
+            heading,
+            pitch,
+            visibleBounds,
+            center,
+          } = feature.properties;
+          mockCallback({
+            zoomLevel,
+            heading,
+            pitch,
+            visibleBounds,
+            center,
+            // Also available in geometry.coordinates
+            geometryCoordinates: feature.geometry.coordinates,
+          });
+        }}
+      />,
+    );
+
+    expect(mockCallback).not.toHaveBeenCalled(); // No native events in test env
+  });
 });

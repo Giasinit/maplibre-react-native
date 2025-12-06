@@ -93,9 +93,22 @@ export interface ResizePayload {
   height: number;
 }
 
+export interface MovePayload {
+  zoomLevel: number;
+  heading: number;
+  pitch: number;
+  visibleBounds: VisibleBounds;
+  /**
+   * Center coordinate of the map [longitude, latitude].
+   * Also available in the GeoJSON geometry as feature.geometry.coordinates.
+   */
+  center: GeoJSON.Position;
+}
+
 type RegionPayloadFeature = GeoJSON.Feature<GeoJSON.Point, RegionPayload>;
 type FramePayloadFeature = GeoJSON.Feature<GeoJSON.Point, FramePayload>;
 type ResizePayloadFeature = GeoJSON.Feature<GeoJSON.Point, ResizePayload>;
+type MovePayloadFeature = GeoJSON.Feature<GeoJSON.Point, MovePayload>;
 
 type VisibleBounds = [northEast: GeoJSON.Position, southWest: GeoJSON.Position];
 
@@ -268,6 +281,12 @@ interface MapViewProps extends BaseProps {
    */
   onMapResize?: (feature: ResizePayloadFeature) => void;
   /**
+   * Callback invoked in real-time during map movement (pan, zoom, rotate, pitch).
+   * Fires very fast during any camera movement - similar to map.on("move") in MapLibre GL JS.
+   * Contains current center coordinates, zoom, pitch, and heading.
+   */
+  onMapMove?: (feature: MovePayloadFeature) => void;
+  /**
    * Emitted frequency of regionWillChange events
    */
   regionWillChangeDebounceTime?: number;
@@ -289,7 +308,7 @@ type CallableProps = {
 interface NativeProps
   extends Omit<
     MapViewProps,
-    "onPress" | "onLongPress" | "onCameraChangedOnFrame" | "onMapResize"
+    "onPress" | "onLongPress" | "onCameraChangedOnFrame" | "onMapResize" | "onMapMove"
   > {
   mapStyle?: string;
   onPress(event: NativeSyntheticEvent<{ payload: GeoJSON.Feature }>): void;
@@ -299,6 +318,9 @@ interface NativeProps
   ): void;
   onMapResize?(
     event: NativeSyntheticEvent<{ payload: ResizePayloadFeature }>,
+  ): void;
+  onMapMove?(
+    event: NativeSyntheticEvent<{ payload: MovePayloadFeature }>,
   ): void;
 }
 
@@ -692,6 +714,14 @@ export const MapView = memo(
         }
       };
 
+      const _onMapMove = (
+        e: NativeSyntheticEvent<{ payload: MovePayloadFeature }>,
+      ): void => {
+        if (isFunction(props.onMapMove)) {
+          props.onMapMove(e.nativeEvent.payload);
+        }
+      };
+
       const _onRegionWillChange = (payload: RegionPayloadFeature): void => {
         if (isFunction(props.onRegionWillChange)) {
           props.onRegionWillChange(payload);
@@ -880,6 +910,7 @@ export const MapView = memo(
         onMapChange: _onChange,
         onCameraChangedOnFrame: _onCameraChangedOnFrame,
         onMapResize: _onMapResize,
+        onMapMove: _onMapMove,
         onAndroidCallback: isAndroid() ? _onAndroidCallback : undefined,
       };
 

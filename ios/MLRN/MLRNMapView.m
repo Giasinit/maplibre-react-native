@@ -596,6 +596,31 @@ static double const M2PI = M_PI * 2;
   });
 }
 
+- (NSDictionary *)_makeMovePayload {
+  CLLocationCoordinate2D center = self.centerCoordinate;
+  MLNPointFeature *feature = [[MLNPointFeature alloc] init];
+  feature.coordinate = center;
+  feature.attributes = @{
+    @"zoomLevel" : [NSNumber numberWithDouble:self.zoomLevel],
+    @"heading" : [NSNumber numberWithDouble:self.camera.heading],
+    @"pitch" : [NSNumber numberWithDouble:self.camera.pitch],
+    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds],
+    @"center" : @[ @(center.longitude), @(center.latitude) ]
+  };
+  return feature.geoJSONDictionary;
+}
+
+- (void)emitMapMove {
+  if (self.onMapMove == nil) {
+    return;
+  }
+  
+  self.onMapMove(@{
+    @"type" : @"mapmove",
+    @"payload" : [self _makeMovePayload]
+  });
+}
+
 - (void)dealloc {
   [self stopFrameUpdates];
 }

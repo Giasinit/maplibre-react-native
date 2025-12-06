@@ -496,6 +496,8 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
                 if (mFrameUpdateEnabled) {
                     emitCameraChangedOnFrame();
                 }
+                // Emit real-time move event (similar to map.on("move") in MapLibre GL JS)
+                emitMapMoveEvent();
             }
         });
 
@@ -1692,6 +1694,50 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
         } catch (Exception ex) {
             Logger.e(LOG_TAG,
                     String.format("An error occurred while attempting to make the resize payload: %s", ex.getMessage()));
+        }
+
+        return GeoJSONUtils.toPointFeature(latLng, properties);
+    }
+
+    /**
+     * Emit map move event with current camera position.
+     * This fires on every camera movement for real-time tracking.
+     */
+    private void emitMapMoveEvent() {
+        if (mMap == null || mDestroyed) {
+            return;
+        }
+        
+        CameraPosition position = mMap.getCameraPosition();
+        if (position == null || position.target == null) {
+            return;
+        }
+        
+        WritableMap payload = makeMovePayload(position);
+        mManager.sendMapMoveEvent(this, payload);
+    }
+
+    private WritableMap makeMovePayload(CameraPosition position) {
+        if (position == null || position.target == null) {
+            return new WritableNativeMap();
+        }
+        
+        LatLng latLng = new LatLng(position.target.getLatitude(), position.target.getLongitude());
+
+        WritableMap properties = new WritableNativeMap();
+        properties.putDouble("zoomLevel", position.zoom);
+        properties.putDouble("heading", position.bearing);
+        properties.putDouble("pitch", position.tilt);
+        
+        // Add center coordinate to properties for easy access
+        properties.putArray("center", GeoJSONUtils.fromLatLng(latLng));
+
+        try {
+            VisibleRegion visibleRegion = mMap.getProjection().getVisibleRegion();
+            properties.putArray("visibleBounds", GeoJSONUtils.fromLatLngBounds(visibleRegion.latLngBounds));
+        } catch (Exception ex) {
+            Logger.e(LOG_TAG,
+                    String.format("An error occurred while attempting to make the move payload: %s", ex.getMessage()));
         }
 
         return GeoJSONUtils.toPointFeature(latLng, properties);

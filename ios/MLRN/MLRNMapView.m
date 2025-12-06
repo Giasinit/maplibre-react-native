@@ -522,11 +522,7 @@ static double const M2PI = M_PI * 2;
   _displayLink = nil;
 }
 
-- (void)_handleFrameUpdate:(CADisplayLink *)displayLink {
-  if (self.onCameraChangedOnFrame == nil) {
-    return;
-  }
-  
+- (NSDictionary *)_makeFramePayload:(double)timestamp {
   CLLocationCoordinate2D center = self.centerCoordinate;
   MLNPointFeature *feature = [[MLNPointFeature alloc] init];
   feature.coordinate = center;
@@ -534,14 +530,21 @@ static double const M2PI = M_PI * 2;
     @"zoomLevel" : [NSNumber numberWithDouble:self.zoomLevel],
     @"heading" : [NSNumber numberWithDouble:self.camera.heading],
     @"pitch" : [NSNumber numberWithDouble:self.camera.pitch],
-    @"timestamp" : [NSNumber numberWithDouble:displayLink.timestamp],
+    @"timestamp" : [NSNumber numberWithDouble:timestamp],
     @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds],
     @"center" : @[ @(center.longitude), @(center.latitude) ]
   };
+  return feature.geoJSONDictionary;
+}
+
+- (void)_handleFrameUpdate:(CADisplayLink *)displayLink {
+  if (self.onCameraChangedOnFrame == nil) {
+    return;
+  }
   
   self.onCameraChangedOnFrame(@{
     @"type" : @"camerachangedonframe",
-    @"payload" : feature.geoJSONDictionary
+    @"payload" : [self _makeFramePayload:displayLink.timestamp]
   });
 }
 
@@ -550,21 +553,9 @@ static double const M2PI = M_PI * 2;
     return;
   }
   
-  CLLocationCoordinate2D center = self.centerCoordinate;
-  MLNPointFeature *feature = [[MLNPointFeature alloc] init];
-  feature.coordinate = center;
-  feature.attributes = @{
-    @"zoomLevel" : [NSNumber numberWithDouble:self.zoomLevel],
-    @"heading" : [NSNumber numberWithDouble:self.camera.heading],
-    @"pitch" : [NSNumber numberWithDouble:self.camera.pitch],
-    @"timestamp" : [NSNumber numberWithDouble:CACurrentMediaTime()],
-    @"visibleBounds" : [MLRNUtils fromCoordinateBounds:self.visibleCoordinateBounds],
-    @"center" : @[ @(center.longitude), @(center.latitude) ]
-  };
-  
   self.onCameraChangedOnFrame(@{
     @"type" : @"camerachangedonframe",
-    @"payload" : feature.geoJSONDictionary
+    @"payload" : [self _makeFramePayload:CACurrentMediaTime()]
   });
 }
 

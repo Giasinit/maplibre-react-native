@@ -7,6 +7,7 @@ import android.graphics.PointF;
 import android.graphics.RectF;
 import android.location.Location;
 import android.os.Handler;
+import android.os.SystemClock;
 import android.view.Choreographer;
 import androidx.annotation.NonNull;
 
@@ -1557,8 +1558,8 @@ public class MLRNMapView extends MapView implements OnMapReadyCallback, MapLibre
             return;
         }
         
-        // Use System.nanoTime() for timestamp since this is not from Choreographer
-        WritableMap payload = makeFramePayload(position, System.nanoTime());
+        // Use SystemClock.elapsedRealtimeNanos() for consistent timestamps with Choreographer
+        WritableMap payload = makeFramePayload(position, SystemClock.elapsedRealtimeNanos());
         mManager.sendCameraChangedOnFrameEvent(this, payload);
     }
 

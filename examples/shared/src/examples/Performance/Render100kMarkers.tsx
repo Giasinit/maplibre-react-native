@@ -1,3 +1,50 @@
+/*
+TECHNICAL ANALYSIS: Rendering 100k Markers with MapLibre React Native
+
+APPROACH: Layer-based rendering (native-first)
+- Uses ShapeSource + CircleLayer instead of PointAnnotation/Views
+- All rendering handled by MapLibre's native engine (OpenGL/Metal)
+- Zero React components per marker = minimal bridge overhead
+
+PERFORMANCE OPTIMIZATIONS:
+1. Data-driven styling with "match" expressions
+   - Color/size determined by feature properties at render time
+   - No need for multiple layers or filtering
+   - MapLibre evaluates expressions natively on GPU
+
+2. Efficient updates via setNativeProps
+   - Bypasses React reconciliation
+   - Direct native property updates
+   - Avoids full component re-renders
+
+3. Throttled updates (100ms default)
+   - Reduces bridge traffic
+   - Smooth animation without frame drops
+   - Adjustable based on device capability
+
+4. Minimal geometry overhead
+   - buffer: 0 - no tile buffering (not needed for points)
+   - tolerance: 0 - no simplification
+   - cluster: false - no clustering overhead
+
+ALTERNATIVE APPROACHES (not used):
+- SymbolLayer: requires image loading, slower for 100k points
+- Multiple CircleLayer: too many layers = performance hit
+- Canvas rendering per feature: not supported, would be slow
+
+ANDROID OLD/LOW-END OPTIMIZATIONS:
+- CircleLayer is GPU-accelerated and very efficient
+- No shadows, minimal stroke width
+- No text labels (can be added conditionally per zoom)
+- Simple property-based styling (no complex expressions)
+
+REALTIME UPDATES:
+- requestAnimationFrame for smooth updates
+- setNativeProps for direct source updates
+- No onMapMove or other bridge-heavy listeners
+- Update logic runs in JS, only geometry sent to native
+*/
+
 import {
   CircleLayer,
   MapView,

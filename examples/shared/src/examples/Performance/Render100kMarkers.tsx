@@ -111,7 +111,9 @@ function updateFeatureCollection(
   collection: GeoJSON.FeatureCollection<GeoJSON.Point, MarkerProperties>,
   deltaTime: number,
 ): GeoJSON.FeatureCollection<GeoJSON.Point, MarkerProperties> {
-  const features = collection.features.map((feature) => {
+  for (let i = 0; i < collection.features.length; i++) {
+    const feature = collection.features[i];
+    if (!feature) continue;
     const coordinates = feature.geometry.coordinates;
     const lon = coordinates[0] ?? 0;
     const lat = coordinates[1] ?? 0;
@@ -127,23 +129,13 @@ function updateFeatureCollection(
     if (newLat > 85) newLat = 85;
     if (newLat < -85) newLat = -85;
 
-    return {
-      ...feature,
-      geometry: {
-        ...feature.geometry,
-        coordinates: [newLon, newLat],
-      },
-      properties: {
-        ...feature.properties,
-        rotation: (feature.properties.rotation + speed * deltaTime * 0.1) % 360,
-      },
-    };
-  });
+    coordinates[0] = newLon;
+    coordinates[1] = newLat;
+    feature.properties.rotation =
+      (feature.properties.rotation + speed * deltaTime * 0.1) % 360;
+  }
 
-  return {
-    ...collection,
-    features,
-  };
+  return collection;
 }
 
 const styles = StyleSheet.create({
@@ -176,9 +168,9 @@ const styles = StyleSheet.create({
 export function Render100kMarkers() {
   const shapeSourceRef = useRef<ShapeSourceRef>(null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [featureCollection, setFeatureCollection] = useState(() =>
-    generateFeatureCollection(POINT_COUNT),
-  );
+  const featureCollectionRef = useRef<
+    GeoJSON.FeatureCollection<GeoJSON.Point, MarkerProperties>
+  >(generateFeatureCollection(POINT_COUNT));
   const lastUpdateTime = useRef(Date.now());
   const animationFrameRef = useRef<number>();
 
@@ -193,13 +185,14 @@ export function Render100kMarkers() {
         const deltaTime = now - lastUpdateTime.current;
 
         if (deltaTime >= UPDATE_INTERVAL) {
-          setFeatureCollection((prev) => {
-            const updated = updateFeatureCollection(prev, deltaTime);
-            if (shapeSourceRef.current) {
-              shapeSourceRef.current.setNativeProps({ shape: updated });
-            }
-            return updated;
-          });
+          const updated = updateFeatureCollection(
+            featureCollectionRef.current,
+            deltaTime,
+          );
+          featureCollectionRef.current = updated;
+          if (shapeSourceRef.current) {
+            shapeSourceRef.current.setNativeProps({ shape: updated });
+          }
           lastUpdateTime.current = now;
         }
 
@@ -224,7 +217,7 @@ export function Render100kMarkers() {
         <ShapeSource
           id="markers-100k"
           ref={shapeSourceRef}
-          shape={featureCollection}
+          shape={featureCollectionRef.current}
           cluster={false}
           buffer={0}
           tolerance={0}

@@ -71,6 +71,9 @@ export { SetAndroidPreferredFramesPerSecond } from "./UserLocation/SetAndroidPre
 export { UserLocationDisplacement } from "./UserLocation/UserLocationDisplacement";
 export { UserLocationUpdate } from "./UserLocation/UserLocationUpdate";
 
+// Performance
+export { Render100kMarkers } from "./Performance/Render100kMarkers";
+
 // Misc
 export { BugReport } from "./BugReport";
 export { CacheManagement } from "./CacheManagement";

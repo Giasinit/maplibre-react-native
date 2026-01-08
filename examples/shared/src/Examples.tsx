@@ -200,6 +200,12 @@ const Examples = new ExampleGroup(
       new ExampleItem("Animated Size", MapLibreExamples.AnimatedSize),
       new ExampleItem("Reanimated Point", MapLibreExamples.ReanimatedPoint),
     ]),
+    new ExampleGroup("Performance", [
+      new ExampleItem(
+        "Render 100k Markers",
+        MapLibreExamples.Render100kMarkers,
+      ),
+    ]),
     new ExampleItem("Cache Management", MapLibreExamples.CacheManagement),
   ],
   true,

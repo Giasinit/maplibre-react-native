@@ -304,98 +304,8 @@ export function Render100kMarkers() {
           buffer={0}
           tolerance={0}
         >
-          <CircleLayer
-            id="markers-scooters-bicycles"
-            filter={[
-              "any",
-              ["==", ["get", "type"], "dott_scooter"],
-              ["==", ["get", "type"], "dott_bicycle"],
-            ]}
-            style={{
-              circleRadius: [
-                "match",
-                ["get", "type"],
-                "dott_bicycle",
-                12,
-                "dott_scooter",
-                10,
-                8,
-              ],
-              circleColor: ["get", "color"],
-              circleOpacity: 0.9,
-              circleStrokeWidth: [
-                "case",
-                ["==", ["get", "isSelected"], true],
-                3,
-                2,
-              ],
-              circleStrokeColor: "#ffffff",
-              circleStrokeOpacity: 1,
-              circlePitchAlignment: "map",
-            }}
-          />
-
-          <CircleLayer
-            id="markers-stops"
-            belowLayerID="markers-scooters-bicycles"
-            filter={["==", ["get", "type"], "stops_padua"]}
-            style={{
-              circleRadius: 10,
-              circleColor: [
-                "match",
-                ["get", "zoneId"],
-                "tu1",
-                "#f8b121",
-                "tu2",
-                "#41bfef",
-                "#014687",
-              ],
-              circleOpacity: 0.9,
-              circleStrokeWidth: [
-                "case",
-                ["==", ["get", "isSelected"], true],
-                3,
-                2,
-              ],
-              circleStrokeColor: "#ffffff",
-              circleStrokeOpacity: 1,
-              circlePitchAlignment: "map",
-            }}
-          />
-
-          <SymbolLayer
-            id="markers-stops-labels"
-            belowLayerID="markers-stops"
-            filter={[
-              "all",
-              ["==", ["get", "type"], "stops_padua"],
-              ["==", ["get", "isHighlighted"], true],
-            ]}
-            style={{
-              textField: ["get", "stopName"],
-              textSize: [
-                "interpolate",
-                ["linear"],
-                ["zoom"],
-                13,
-                0,
-                15,
-                10,
-                18,
-                14,
-              ],
-              textColor: "#ffffff",
-              textHaloColor: "#000000",
-              textHaloWidth: 1,
-              textOffset: [1.5, 0],
-              textAnchor: "left",
-              textFont: ["Open Sans Bold", "Arial Unicode MS Bold"],
-            }}
-          />
-
           <SymbolLayer
             id="markers-buses-trams"
-            belowLayerID="markers-stops-labels"
             filter={[
               "any",
               ["==", ["get", "type"], "bus_lines_padua"],
@@ -424,6 +334,96 @@ export function Render100kMarkers() {
               iconRotationAlignment: "map",
               iconPitchAlignment: "map",
               textPitchAlignment: "map",
+            }}
+          />
+
+          <SymbolLayer
+            id="markers-stops-labels"
+            belowLayerID="markers-buses-trams"
+            filter={[
+              "all",
+              ["==", ["get", "type"], "stops_padua"],
+              ["==", ["get", "isHighlighted"], true],
+            ]}
+            style={{
+              textField: ["get", "stopName"],
+              textSize: [
+                "interpolate",
+                ["linear"],
+                ["zoom"],
+                13,
+                0,
+                15,
+                10,
+                18,
+                14,
+              ],
+              textColor: "#ffffff",
+              textHaloColor: "#000000",
+              textHaloWidth: 1,
+              textOffset: [1.5, 0],
+              textAnchor: "left",
+              textFont: ["Open Sans Bold", "Arial Unicode MS Bold"],
+            }}
+          />
+
+          <CircleLayer
+            id="markers-stops"
+            belowLayerID="markers-stops-labels"
+            filter={["==", ["get", "type"], "stops_padua"]}
+            style={{
+              circleRadius: 10,
+              circleColor: [
+                "match",
+                ["get", "zoneId"],
+                "tu1",
+                "#f8b121",
+                "tu2",
+                "#41bfef",
+                "#014687",
+              ],
+              circleOpacity: 0.9,
+              circleStrokeWidth: [
+                "case",
+                ["==", ["get", "isSelected"], true],
+                3,
+                2,
+              ],
+              circleStrokeColor: "#ffffff",
+              circleStrokeOpacity: 1,
+              circlePitchAlignment: "map",
+            }}
+          />
+
+          <CircleLayer
+            id="markers-scooters-bicycles"
+            belowLayerID="markers-stops"
+            filter={[
+              "any",
+              ["==", ["get", "type"], "dott_scooter"],
+              ["==", ["get", "type"], "dott_bicycle"],
+            ]}
+            style={{
+              circleRadius: [
+                "match",
+                ["get", "type"],
+                "dott_bicycle",
+                12,
+                "dott_scooter",
+                10,
+                8,
+              ],
+              circleColor: ["get", "color"],
+              circleOpacity: 0.9,
+              circleStrokeWidth: [
+                "case",
+                ["==", ["get", "isSelected"], true],
+                3,
+                2,
+              ],
+              circleStrokeColor: "#ffffff",
+              circleStrokeOpacity: 1,
+              circlePitchAlignment: "map",
             }}
           />
         </ShapeSource>

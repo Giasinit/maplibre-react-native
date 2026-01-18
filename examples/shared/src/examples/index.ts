@@ -62,6 +62,7 @@ export { SdfIcon } from "./SymbolCircleLayer/SdfIcon";
 export { DataDrivenCircleColors } from "./SymbolCircleLayer/DataDrivenCircleColors";
 export { Earthquakes } from "./SymbolCircleLayer/Earthquakes";
 export { ShapeSourceIcon } from "./SymbolCircleLayer/ShapeSourceIcon";
+export { Massive100kMarkers } from "./SymbolCircleLayer/Massive100kMarkers";
 
 // UserLocation
 export { FollowUserLocationRenderMode } from "./UserLocation/FollowUserLocationRenderMode";

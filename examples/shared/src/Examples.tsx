@@ -148,6 +148,10 @@ const Examples = new ExampleGroup(
         "Data-driven Circle Colors",
         MapLibreExamples.DataDrivenCircleColors,
       ),
+      new ExampleItem(
+        "100k Markers Performance Test",
+        MapLibreExamples.Massive100kMarkers,
+      ),
     ]),
     new ExampleGroup("Fill/RasterLayer", [
       new ExampleItem("GeoJSON Source", MapLibreExamples.GeoJSONSource),
